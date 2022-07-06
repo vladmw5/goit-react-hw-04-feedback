@@ -1,49 +1,55 @@
-import React, { Component, Fragment } from 'react';
+import React, { useState, Fragment } from 'react';
 import Section from './Section';
 import Statistics from './Statistics';
 import FeedbackOptions from './FeedbackOptions';
-class App extends Component {
-  state = {
-    good: 0,
-    neutral: 0,
-    bad: 0,
+const App = () => {
+  const [good, setGood] = useState(0);
+  const [neutral, setNeutral] = useState(0);
+  const [bad, setBad] = useState(0);
+
+  const total = () => good + neutral + bad;
+  const positive = () => Math.floor((good / (total() || 1)) * 100);
+
+  const handleBtnClick = event => {
+    switch (event.target.dataset.name) {
+      case 'good':
+        setGood(prevGood => prevGood + 1);
+        break;
+
+      case 'neutral':
+        setNeutral(prevNeut => prevNeut + 1);
+        break;
+
+      case 'bad':
+        setBad(prevBad => prevBad + 1);
+        break;
+
+      default:
+        throw new Error('Unknown option');
+    }
   };
 
-  handleBtnClick = event => {
-    this.setState(prevState => {
-      return {
-        [event.target.dataset.name]:
-          prevState[event.target.dataset.name] + 1,
-      };
-    });
-  };
+  const currentTotal = total();
 
-  total = () => this.state.good + this.state.neutral + this.state.bad;
-  positive = () =>
-    Math.floor((this.state.good / (this.total() || 1)) * 100);
-
-  render() {
-    const total = this.total();
-    return (
-      <Fragment>
-        <Section title="Please leave feedback">
-          <FeedbackOptions feedbackLeaveHandler={this.handleBtnClick} />
+  return (
+    <Fragment>
+      <Section title="Please leave feedback">
+        <FeedbackOptions feedbackLeaveHandler={handleBtnClick} />
+      </Section>
+      {/* Якщо total === 0, то заміть нього буде null, який react не рендерить */}
+      {(currentTotal || null) && (
+        <Section title="Statistics">
+          <Statistics
+            good={good}
+            neutral={neutral}
+            bad={bad}
+            total={currentTotal}
+            positive={positive()}
+          />
         </Section>
-        {/* Якщо total === 0, то заміть нього буде null, який react не рендерить */}
-        {(total || null) && (
-          <Section title="Statistics">
-            <Statistics
-              good={this.state.good}
-              neutral={this.state.neutral}
-              bad={this.state.bad}
-              total={total}
-              positive={this.positive()}
-            />
-          </Section>
-        )}
-      </Fragment>
-    );
-  }
-}
+      )}
+    </Fragment>
+  );
+};
 
 export default App;
